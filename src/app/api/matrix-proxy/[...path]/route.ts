@@ -301,9 +301,14 @@ async function handler(
 
     clearTimeout(timeout)
     return buildResponse(response!, matrixPath)
-  } catch {
+  } catch (err) {
+    const e = err as Error & { cause?: { code?: string; message?: string } }
+    console.error('[matrix-proxy] upstream error:',
+      e?.name, e?.message,
+      'cause:', e?.cause?.code, e?.cause?.message,
+      'target:', targetUrl)
     return NextResponse.json(
-      { error: 'Failed to reach homeserver' },
+      { error: 'Failed to reach homeserver', detail: e?.message || 'unknown' },
       { status: 502 }
     )
   } finally {

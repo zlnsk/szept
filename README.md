@@ -1,8 +1,8 @@
-# szept
+# Messages
 
 The best-looking Material 3 inspired Matrix client — secure, encrypted, and built from scratch.
 
-After searching for a Matrix client that was both beautiful and truly secure, and never finding one that met the bar, I built my own. szept is the result of hard work together with [Claude Code](https://claude.ai/code) and the patience of my wife.
+After searching for a Matrix client that was both beautiful and truly secure, and never finding one that met the bar, I built my own. Messages is the result of hard work together with [Claude Code](https://claude.ai/code) and the patience of my wife.
 
 ## Features
 

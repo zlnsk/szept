@@ -8,11 +8,11 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in szept, please report it responsibly.
+If you discover a security vulnerability in Messages, please report it responsibly.
 
 **Do not open a public GitHub issue for security vulnerabilities.**
 
-Instead, please send an email to **security@szept.app** with:
+Instead, please send an email to **security@example.com** with:
 
 - A description of the vulnerability
 - Steps to reproduce the issue
@@ -23,11 +23,11 @@ You should receive an acknowledgement within **48 hours**. We will work with you
 
 ## Scope
 
-This policy applies to the szept Matrix client application. Issues in upstream dependencies (matrix-js-sdk, Next.js, etc.) should be reported to their respective maintainers, but we appreciate being notified so we can assess impact on szept.
+This policy applies to the Messages Matrix client application. Issues in upstream dependencies (matrix-js-sdk, Next.js, etc.) should be reported to their respective maintainers, but we appreciate being notified so we can assess impact on Messages.
 
 ## Security Measures
 
-szept implements the following security measures:
+Messages implements the following security measures:
 
 - End-to-end encryption via Matrix Olm/Megolm (matrix-sdk-crypto-wasm)
 - DOMPurify sanitization for all rendered message HTML
