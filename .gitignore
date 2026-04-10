@@ -1,5 +1,6 @@
 # dependencies
 /node_modules
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -13,10 +14,13 @@
 
 # next.js
 /.next/
+.next/
 /out/
+out/
 
 # production
 /build
+dist/
 
 # misc
 .DS_Store
@@ -27,10 +31,19 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
 
 # env files
+.env
+.env.local
+.env.production
+.env.production.local
 .env*
 !.env.example
+
+# pm2 / process manager configs (may contain secrets)
+ecosystem.config.js
+ecosystem.config.cjs
 
 # typescript
 *.tsbuildinfo
@@ -43,7 +56,5 @@ android-app/javac.*.args
 
 # build metadata (now derived from git)
 build-meta.json
-
-ecosystem.config.js
 
 CLAUDE.md

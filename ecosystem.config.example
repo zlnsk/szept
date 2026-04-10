@@ -1,0 +1,37 @@
+// Copy this file to ecosystem.config.js and fill in real values.
+// ecosystem.config.js is gitignored because it contains secrets.
+module.exports = {
+  apps: [{
+    name: "Messages",
+    script: "node_modules/.bin/next",
+    args: "start -p 3001",
+    cwd: "/opt/apps/Messages",
+    watch: false,
+    autorestart: true,
+    max_restarts: 10,
+    max_memory_restart: '256M',
+    env: {
+      NODE_ENV: "production",
+      // Comma-separated list of Matrix homeserver hostnames the proxy is allowed to forward to.
+      // Empty/unset = deny all (no homeservers reachable via the proxy).
+      ALLOWED_HOMESERVER_HOSTS: "REPLACE_ME_homeserver.example.com",
+      // Comma-separated list of homeserver hostnames the app fully trusts for login/session flows.
+      TRUSTED_HOMESERVER_HOSTS: "REPLACE_ME_homeserver.example.com",
+      // Optional: override upstream backend URL per homeserver hostname.
+      // Format: "host1=http://internal1:port,host2=http://internal2:port"
+      // Used to bypass public TLS/CDN and talk directly to the homeserver over the private network.
+      // Leave empty to always use the public homeserver URL from the client request.
+      MATRIX_BACKEND_URL: "",
+      // JMAP transactional email (OTP delivery)
+      OTP_JMAP_URL: "REPLACE_ME_http://jmap.example.com:8080",
+      OTP_JMAP_USER: "REPLACE_ME_noreply",
+      OTP_JMAP_PASS: "REPLACE_ME_jmap_password",
+      OTP_FROM_EMAIL: "REPLACE_ME_noreply@example.com",
+      // Comma-separated allowlist of email addresses that may request OTP codes.
+      OTP_ALLOWED_EMAILS: "REPLACE_ME_user1@example.com,user2@example.com",
+      // Random string used to sign session cookies. Generate with: openssl rand -base64 32
+      OTP_SESSION_SECRET: "REPLACE_ME_base64_random_secret",
+      OTP_SESSION_HOURS: "8"
+    }
+  }]
+};

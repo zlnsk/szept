@@ -32,6 +32,7 @@ import {
   Pencil,
   Star,
 } from 'lucide-react'
+import { PangolinBadge } from '@/components/ui/pangolin-badge'
 import { getMatrixClient } from '@/lib/matrix/client'
 
 interface SidebarProps {
@@ -189,7 +190,7 @@ export function Sidebar({ onSettingsClick, onChatSelect, onProfileClick }: Sideb
 
   const getOtherMemberPresence = (room: MatrixRoom): 'online' | 'offline' | 'away' | null => {
     if (room.isDirect) {
-      const BOT_USER_IDS: string[] = []
+      const BOT_USER_IDS = ['@claude:lukasz.com', '@signalbot:lukasz.com', '@signal:lukasz.com']
       const isBotUser = (userId: string) => BOT_USER_IDS.includes(userId)
       const isBridgePuppet = (userId: string) => /^@(signal_|telegram_|whatsapp_|slack_|discord_|instagram_)/.test(userId)
       const other = room.members.find(m => m.userId !== user?.userId && !isBotUser(m.userId)) || room.members.find(m => m.userId !== user?.userId && isBridgePuppet(m.userId))
@@ -332,6 +333,11 @@ export function Sidebar({ onSettingsClick, onChatSelect, onProfileClick }: Sideb
                   <p className="truncate text-sm font-medium text-m3-on-surface">{user?.displayName}</p>
                   <p className="truncate text-xs text-m3-on-surface-variant">{user?.userId}</p>
                 </div>
+              </div>
+
+              {/* Pangolin identity */}
+              <div className="border-t border-m3-outline-variant px-5 py-2 dark:border-m3-outline-variant">
+                <PangolinBadge />
               </div>
 
               {/* Theme toggle */}

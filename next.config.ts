@@ -33,6 +33,7 @@ function getBuildMetadata() {
 const buildMeta = getBuildMetadata()
 
 const nextConfig: NextConfig = {
+  serverExternalPackages: ["shared-auth"],
   poweredByHeader: false,
   basePath: "/Messages",
   // Expose build metadata to client code (StatusBar + version display)

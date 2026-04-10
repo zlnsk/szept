@@ -95,7 +95,7 @@ export function RoomInfoPanel({
   const defaultPowerLevel = 0
 
   // Filter out Signal bridge bot and puppet users from the member list
-  const isSignalBridgeUser = (userId: string) => /^@signal(bot)?:/.test(userId)
+  const isSignalBridgeUser = (userId: string) => /^@signal(bot)?:/.test(userId) && userId.endsWith(":lukasz.com")
   const filteredMembers = useMemo(() =>
     activeRoom.members.filter(m => !isSignalBridgeUser(m.userId)),
     [activeRoom.members]

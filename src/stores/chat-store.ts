@@ -42,7 +42,7 @@ function stripHtml(html: string): string {
 /**
  * Strip Matrix ID disambiguation from display names.
  * The SDK appends " (@user:server)" when multiple members share a display name.
- * e.g. "Alice (@signal_52c1d86e-...:example.com)" → "Alice"
+ * e.g. "Łukasz (@signal_52c1d86e-...:lukasz.com)" → "Łukasz"
  */
 function cleanDisplayName(name: string): string {
   // Strip trailing " (@user:server.com)" disambiguation
@@ -207,7 +207,7 @@ interface ChatState {
   resetState: () => void
 }
 
-const BOT_USER_IDS: string[] = []
+const BOT_USER_IDS = ['@claude:lukasz.com', '@signalbot:lukasz.com', '@signal:lukasz.com', '@signal-bot:lukasz.com']
 const isBotUser = (userId: string) => BOT_USER_IDS.includes(userId)
 const isBotDisplayName = (name: string) => /\b(bridge\s*bot|bridgebot)\b/i.test(name)
 const isBridgePuppet = (userId: string) => /^@(signal_|telegram_|whatsapp_|slack_|discord_|instagram_)/.test(userId)
@@ -344,10 +344,12 @@ function roomToMatrixRoom(room: Room): MatrixRoom {
         displayName = cleanDisplayName(dmNameMember.name || dmNameMember.userId)
       } else {
         // Lazy loading fallback: strip bot name from SDK-computed room.name
-        // Handles patterns like "User X and BridgeBot"
+        // Handles patterns like "User X and Claude" or "User X and @claude:lukasz.com"
         const stripped = displayName
-          .replace(/\s+and\s+(Signal Bridge Bot|signalbot)$/i, '')
-          .replace(/,\s*(Signal Bridge Bot|signalbot)$/i, '')
+          .replace(/\s+and\s+(claude|Signal Bridge Bot|signalbot)$/i, '')
+          .replace(/\s+and\s+@(claude|signalbot|signal):lukasz\.com$/i, '')
+          .replace(/,\s*(claude|Signal Bridge Bot|signalbot)$/i, '')
+          .replace(/,\s*@(claude|signalbot|signal):lukasz\.com$/i, '')
         if (stripped && stripped !== displayName) {
           displayName = cleanDisplayName(stripped.trim())
         }

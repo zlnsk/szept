@@ -1,21 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { isPrivateHost, isPrivateHostResolved } from '@/lib/ssrf'
 // Homeserver allowlist: only these hosts can be proxied to.
-// Set via ALLOWED_HOMESERVER_HOSTS env var (comma-separated).
-const ALLOWED_HOMESERVERS: ReadonlySet<string> = (() => {
-  const env = process.env.ALLOWED_HOMESERVER_HOSTS ?? 'matrix.org'
-  return new Set(env.split(',').map(h => h.trim().toLowerCase()).filter(Boolean))
-})()
+// Set via ALLOWED_HOMESERVER_HOSTS env var (comma-separated hostnames).
+// If empty/unset, the allowlist is empty and ALL proxy requests are denied.
+const ALLOWED_HOMESERVERS: ReadonlySet<string> = new Set(
+  (process.env.ALLOWED_HOMESERVER_HOSTS ?? '')
+    .split(',')
+    .map(h => h.trim().toLowerCase())
+    .filter(Boolean)
+)
+
+// Optional per-host backend override. Lets the proxy reach the homeserver via an
+// internal URL (e.g. Tailscale / private network) instead of going back out over
+// the public internet. Configured via MATRIX_BACKEND_URL env var, format:
+//   "host1=http://10.0.0.1:8008,host2=http://10.0.0.2:8008"
+// If a host is not listed, the proxy uses the original public origin supplied by
+// the client (hsUrl.origin).
+const MATRIX_BACKEND_MAP: ReadonlyMap<string, string> = new Map(
+  (process.env.MATRIX_BACKEND_URL ?? '')
+    .split(',')
+    .map(entry => entry.trim())
+    .filter(Boolean)
+    .map(entry => {
+      const eq = entry.indexOf('=')
+      if (eq === -1) return null
+      const host = entry.slice(0, eq).trim().toLowerCase()
+      const url = entry.slice(eq + 1).trim()
+      if (!host || !url) return null
+      return [host, url] as [string, string]
+    })
+    .filter((x): x is [string, string] => x !== null)
+)
 
 
 /**
  * Server-side proxy for Matrix API requests.
- * Bypasses browser CORS restrictions when the homeserver doesn't serve
- * Access-Control-Allow-Origin headers.
+ * Bypasses browser CORS restrictions when the homeserver (e.g. behind Pangolin)
+ * doesn't serve Access-Control-Allow-Origin headers.
  *
  * Client sends: POST /api/matrix-proxy/_matrix/client/v3/sync?...
- *   Header: X-Matrix-Homeserver: https://matrix.example.com
- * Proxy sends: POST https://matrix.example.com/_matrix/client/v3/sync?...
+ *   Header: X-Matrix-Homeserver: https://<your-homeserver>
+ * Proxy sends: POST https://<your-homeserver>/_matrix/client/v3/sync?...
+ *
+ * The set of allowed homeservers is configured via the ALLOWED_HOMESERVER_HOSTS
+ * env var (comma-separated hostnames).
  */
 
 
@@ -197,7 +225,10 @@ async function handler(
     )
   }
 
-  const targetUrl = `${hsUrl.origin}${matrixPath}${search}`
+  // Optionally route to an internal backend URL (bypasses public TLS / reverse proxy).
+  // See MATRIX_BACKEND_MAP at top of file; falls back to the public homeserver origin.
+  const internalOrigin = MATRIX_BACKEND_MAP.get(hsUrl.hostname.toLowerCase())
+  const targetUrl = `${internalOrigin || hsUrl.origin}${matrixPath}${search}`
 
   // Forward request headers, stripping hop-by-hop and internal ones
   const forwardHeaders = new Headers()

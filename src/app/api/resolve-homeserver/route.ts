@@ -4,9 +4,10 @@ import { isPrivateHost } from '@/lib/ssrf'
 /**
  * Server-side Matrix homeserver resolution.
  * Performs .well-known discovery server-side to avoid browser CORS issues
- * (e.g. when the .well-known host doesn't serve CORS headers).
+ * (e.g. when the .well-known host doesn't serve CORS headers, or when
+ * a reverse proxy like Pangolin intercepts client-side requests).
  *
- * GET /api/resolve-homeserver?server=example.com
+ * GET /api/resolve-homeserver?server=lukasz.com
  */
 export async function GET(req: NextRequest) {
   const server = req.nextUrl.searchParams.get('server')

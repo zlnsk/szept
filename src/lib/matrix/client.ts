@@ -40,7 +40,7 @@ export function getHomeserverDomain(): string | null {
 /**
  * Resolve a Matrix server name to a homeserver base URL.
  * Uses a server-side API route for .well-known discovery to avoid browser
- * CORS issues (e.g. when behind a reverse proxy).
+ * CORS issues (e.g. when behind Pangolin or other auth-gating proxies).
  */
 export async function resolveHomeserver(server: string): Promise<string> {
   // If user typed a full URL, use it directly
@@ -55,7 +55,7 @@ export async function resolveHomeserver(server: string): Promise<string> {
     throw new Error('Insecure homeserver URLs (http://) are not allowed. Use https:// instead.')
   }
 
-  // Client-side discovery first — faster when the server supports CORS
+  // Client-side discovery first — avoids Pangolin auth intercept on login page
   try {
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 10_000)
@@ -240,7 +240,7 @@ function createProxiedFetch(homeserverUrl: string): typeof globalThis.fetch {
       const headers = new Headers(init?.headers || (input instanceof Request ? input.headers : undefined))
       headers.set('X-Matrix-Homeserver', homeserverUrl)
       newInit.headers = headers
-      // Ensure cookies are sent (matrix_token cookie used by proxy)
+      // Ensure cookies are sent (OTP session cookie required by middleware)
       newInit.credentials = 'same-origin'
 
       return globalThis.fetch(proxyUrl, newInit)
@@ -618,7 +618,7 @@ export async function registerAccount(
   password: string,
   homeserverUrl: string
 ): Promise<sdk.MatrixClient> {
-  // Route login/register through the proxy
+  // Route login/register through the proxy (OTP cookie-authenticated)
   const tmpClient = sdk.createClient({
     baseUrl: homeserverUrl,
     fetchFn: createProxiedFetch(homeserverUrl),
@@ -720,7 +720,7 @@ export async function loginWithPassword(
   password: string,
   homeserverUrl: string
 ): Promise<sdk.MatrixClient> {
-  // Route login/register through the proxy
+  // Route login/register through the proxy (OTP cookie-authenticated)
   const tmpClient = sdk.createClient({
     baseUrl: homeserverUrl,
     fetchFn: createProxiedFetch(homeserverUrl),
@@ -937,7 +937,7 @@ export function resolveRoomAvatarFromSDK(roomId: string): string | null {
   if (!isDm) return null // Group with no room avatar → initials
 
   // 3. DM without room avatar: try member fallback
-  const BOT_USER_IDS: string[] = []
+  const BOT_USER_IDS = ['@claude:lukasz.com', '@signalbot:lukasz.com', '@signal:lukasz.com']
   const isBotUser = (userId: string) => BOT_USER_IDS.includes(userId)
   const dmPartner = room.getAvatarFallbackMember()
   if (dmPartner?.getMxcAvatarUrl() && !isBotUser(dmPartner.userId)) return dmPartner.getMxcAvatarUrl()!

@@ -1,68 +1,64 @@
-# szept — Encrypted Matrix Chat Client
+# szept
 
-A modern, end-to-end encrypted Matrix client with Material 3 design. Connect to any Matrix homeserver for secure, decentralized messaging with voice/video calls, link previews, and PWA support.
+The best-looking Material 3 inspired Matrix client — secure, encrypted, and built from scratch.
 
-Built as a clean, privacy-focused alternative to Element — lightweight, fast, and installable as a desktop app.
-
-![Next.js](https://img.shields.io/badge/Next.js-16-black) ![React](https://img.shields.io/badge/React-19-blue) ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue) ![License](https://img.shields.io/badge/License-MIT-blue)
+After searching for a Matrix client that was both beautiful and truly secure, and never finding one that met the bar, I built my own. szept is the result of hard work together with [Claude Code](https://claude.ai/code) and the patience of my wife.
 
 ## Features
 
-- **End-to-end encryption** — Olm/Megolm via matrix-sdk-crypto-wasm
-- **Any Matrix homeserver** — connect to matrix.org, your own Synapse/Conduit, or any compatible server
-- **Material 3 design** — modern dark theme UI
-- **Voice & video calls** — WebRTC-based calling
-- **PWA installable** — install as a desktop/mobile app with offline support
-- **Rich link previews** — automatic URL preview cards
-- **Voice messages** — record and send voice notes
-- **Reactions & replies** — full message interaction support
-- **Security hardened** — CSP, DOMPurify HTML sanitization, SSRF protection on proxy
-- **Matrix proxy** — server-side proxy with SSRF protection for homeserver communication
-
-## Prerequisites
-
-- [Node.js](https://nodejs.org/) 18 or later
-- A Matrix account on any homeserver (e.g., [matrix.org](https://matrix.org/))
-
-No API keys required — Matrix is a free, open, decentralized protocol.
-
-## Quick Start
-
-```bash
-git clone https://github.com/zlnsk/szept.git
-cd szept
-npm install
-cp .env.example .env.local
-# Optionally edit .env.local to configure trusted homeservers
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) and log in with your Matrix credentials.
-
-## Configuration
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `TRUSTED_HOMESERVER_HOSTS` | No | Comma-separated trusted Matrix servers (default: matrix.org) |
-| `ALLOWED_HOMESERVER_HOSTS` | No | Comma-separated allowed servers for proxy (default: matrix.org) |
-| `PORT` | No | Server port (default: 3000) |
+- **Material 3 design** — Clean, modern UI inspired by Material You with dark-first theming
+- **End-to-end encryption** — Full E2EE powered by `matrix-sdk-crypto-wasm`
+- **Voice/video calls** — WebRTC-based VoIP through Matrix
+- **PWA** — Installable on mobile and desktop with offline support via service worker
+- **Link previews** — Rich URL previews inline in chat
+- **Voice messages** — Record and send audio with WebM→OGG conversion
+- **Room directory** — Browse and join public rooms
+- **Security hardened** — CSP headers, DOMPurify sanitization, COOP/COEP isolation
 
 ## Tech Stack
 
-- **Framework:** Next.js 16, React 19, TypeScript
-- **E2EE:** matrix-sdk-crypto-wasm (Olm/Megolm)
-- **Styling:** Tailwind CSS
-- **State:** Zustand
-- **Calls:** WebRTC
-- **PWA:** Service Worker with offline caching
-- **Security:** CSP with nonce, DOMPurify, SSRF protection
+| Layer | Tech |
+|-------|------|
+| Framework | Next.js 16 (standalone output) |
+| UI | React 19, Tailwind CSS 4, Lucide icons |
+| Design | Material 3 inspired, dark theme |
+| State | Zustand |
+| Protocol | matrix-js-sdk, matrix-sdk-crypto-wasm |
+| Security | CSP headers, DOMPurify, COOP/COEP |
 
-## Architecture
+## Getting Started
 
-- **Matrix Proxy** — all homeserver communication goes through a server-side proxy with SSRF protection (blocks private IPs, validates DNS)
-- **Client-side encryption** — E2EE keys never leave the browser
-- **Session management** — Matrix access tokens stored in httpOnly cookies
+```bash
+npm install
+npm run dev
+```
+
+Set your Matrix homeserver in the login screen — no `.env` file required.
+
+## Build
+
+```bash
+npm run build
+npm start
+```
+
+Produces a standalone Node.js server. The build version is derived automatically from `package.json` version + git SHA, or override with `BUILD_VERSION` env var.
+
+## Project Structure
+
+```
+src/
+├── app/            # Next.js app router (pages, API routes, layout)
+├── components/
+│   ├── chat/       # Chat UI (messages, input, sidebar, calls, settings)
+│   ├── providers/  # Auth, realtime sync, theme providers
+│   └── ui/         # Shared UI components (avatar, error boundary)
+├── lib/
+│   ├── matrix/     # Matrix client, media handling, VoIP
+│   └── audio/      # WebM→OGG audio conversion
+└── stores/         # Zustand stores (auth, chat, call state)
+```
 
 ## License
 
-MIT
+[MIT](LICENSE)
