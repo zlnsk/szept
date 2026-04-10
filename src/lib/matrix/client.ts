@@ -360,12 +360,21 @@ export async function generateSecurityKey(password: string): Promise<string> {
     await crypto.bootstrapCrossSigning({
       setupNewCrossSigning: true,
       authUploadDeviceSigningKeys: async (makeRequest) => {
-        // Try without auth first; if 401, retry with password
+        // Send the first request with no auth body so the homeserver returns
+        // a 401 UIA challenge with a session ID. Then re-send with the
+        // password and the returned session.
+        //
+        // NOTE: passing `{}` here causes tuwunel to fail with
+        // "missing field `session`" — its strict serde parser tries to
+        // deserialize the empty auth object as a complete UIA completion.
+        // Synapse tolerates `{}` and returns 401 anyway, but tuwunel does not.
+        // Pass `null` so matrix-js-sdk omits the auth field entirely.
         try {
-          await makeRequest({})
+          await makeRequest(null)
         } catch (err: any) {
-          if (err.httpStatus === 401 && err.data?.flows) {
+          if (err.httpStatus === 401 && err.data?.flows && err.data?.session) {
             await makeRequest({
+              session: err.data.session,
               type: 'm.login.password',
               identifier: {
                 type: 'm.id.user',

@@ -34,17 +34,40 @@ async function verifySessionEdge(token: string, secret: string): Promise<{ email
   } catch { return null; }
 }
 
+// Baseline CSP for routes that don't render the authenticated app shell
+// (e.g. the OTP-auth login page, sw.js, static assets, redirects). No nonce —
+// the OTP login page uses inline form handlers, so 'unsafe-inline' is needed.
+const BASELINE_CSP = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ')
+
+function withBaselineCsp(response: NextResponse): NextResponse {
+  if (!response.headers.has('Content-Security-Policy')) {
+    response.headers.set('Content-Security-Policy', BASELINE_CSP)
+  }
+  return response
+}
+
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Never protect auth endpoints or static assets
+  // Never protect auth endpoints or static assets — but still emit a CSP.
   if (
     pathname.startsWith("/api/auth/") ||
     pathname.startsWith("/_next/") ||
     pathname === "/favicon.ico" ||
     pathname === "/sw.js"
   ) {
-    return NextResponse.next();
+    return withBaselineCsp(NextResponse.next());
   }
 
   // Check OTP session for all other routes (including /api/matrix-proxy/*)
@@ -53,12 +76,12 @@ export default async function middleware(request: NextRequest) {
 
   if (!session) {
     if (pathname.startsWith("/api/") || request.headers.get("accept")?.includes("application/json")) {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
+      return withBaselineCsp(NextResponse.json({ error: "Authentication required" }, { status: 401 }));
     }
-    return NextResponse.redirect(new URL(BASE_PATH + "/api/auth/login", request.url));
+    return withBaselineCsp(NextResponse.redirect(new URL(BASE_PATH + "/api/auth/login", request.url)));
   }
 
-  // Existing CSP nonce logic
+  // Authenticated app shell — full strict CSP with per-request nonce.
   const requestHeaders = new Headers(request.headers)
 
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
